@@ -11,17 +11,20 @@
     <h1 class="title">RSSearcher</h1>
 
     <section class="rss_section">
-        <h2 class="rss_title">Flux RSS</h2>
-        <ul class="rss_list">
-            
-        </ul>
+        <h2 class="rss_section_title">Flux RSS</h2>
+        <ul class="rss_list"></ul>
+    </section>
+
+    <section class="item_section">
+        <h2 class="item_section_title">Liste des articles</h2>
+        <ul class="item_list"></ul>
     </section>
 
     <script>
 
         let m = {
             data: null,
-            flux: [
+            sourcesList: [
                 'https://www.jeuxactu.com/rss/ja.rss',
                 'https://www.lemonde.fr/pixels/rss_full.xml',
                 'https://www.lemonde.fr/jeux-video/rss_full.xml',
@@ -30,35 +33,86 @@
         }
         
         let c = {
+            init: function(){
+                m.sourcesList.forEach(e => {
+                    c.fetchRSS(e)
+                });
+            },
+
             fetchRSS: function(url){
                 let xhr = new XMLHttpRequest();
                     xhr.onreadystatechange = function(){
                         if (xhr.status==200 && xhr.readyState==4){
                             m.data = JSON.parse(xhr.responseText)
-                            v.renderFlux(m.data)
+                            v.renderFlux(m.data, url)
                         }
                     };
                     xhr.open('get', "https://quentin-huet.fr/pt/script/getRss.php?flux=" + url);
                     xhr.send();
             },
-        }
 
-        let v = {
-            listeFlux: document.querySelector('.rss_list'),
-
-            renderFlux: function(flux){
-                list_element = document.createElement('li')
-                title = document.createElement('p')
-
-                title.textContent = flux.channel.title
-
-                list_element.appendChild(title)
-                v.listeFlux.appendChild(list_element)
+            handlerClickFlux: function(url) {
+                let xhr = new XMLHttpRequest();
+                    xhr.onreadystatechange = function(){
+                        if (xhr.status==200 && xhr.readyState==4){
+                            m.data = JSON.parse(xhr.responseText)
+                            v.renderArticles(m.data, url)
+                        }
+                    };
+                    xhr.open('get', "https://quentin-huet.fr/pt/script/getRss.php?flux=" + url);
+                    xhr.send();
             }
         }
 
-        c.fetchRSS('https://www.lemonde.fr/cultures-web/rss_full.xml')
-        c.fetchRSS('https://www.jeuxactu.com/rss/ja.rss')
+        let v = {
+            fluxList: document.querySelector('.rss_list'),
+            itemList: document.querySelector('.item_list'),
+
+            renderFlux: function(flux, id) {
+                // Rendu du titre dans la liste des flux
+                itemFlux = document.createElement('li')
+                title = document.createElement('p')
+
+                itemFlux.id = id
+                itemFlux.addEventListener('click', function(){c.handlerClickFlux(id)})
+                title.textContent = flux.channel.title
+
+                itemFlux.appendChild(title)
+                v.fluxList.appendChild(itemFlux)
+            },
+
+            renderArticles(flux, id) {
+
+                flux.channel.item.forEach(e => {
+                    itemArticle = document.createElement('li')
+                    article = document.createElement('article')
+                    
+                    title = document.createElement('h3')
+                    desc = document.createElement('p')
+                    link = document.createElement('a')
+                    date = document.createElement('span')
+
+                    title.textContent = e.title
+                    desc.textContent = e.description
+                    link.textContent = 'lien'
+                    link.href = e.link
+                    date.textContent = e.pubDate
+
+                    itemArticle.id = id
+
+                    article.appendChild(title)
+                    article.appendChild(desc)
+                    article.appendChild(link)
+                    article.appendChild(date)
+
+                    itemArticle.appendChild(article)
+
+                    v.itemList.appendChild(itemArticle)
+                });
+            }
+        }
+
+        c.init();
 
     </script>
 </body>
