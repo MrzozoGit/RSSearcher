@@ -25,11 +25,36 @@
         let m = {
             data: null,
             sourcesList: [
-                'https://www.jeuxactu.com/rss/ja.rss',
-                'https://www.lemonde.fr/pixels/rss_full.xml',
-                'https://www.lemonde.fr/jeux-video/rss_full.xml',
-                'https://www.lemonde.fr/cultures-web/rss_full.xml'
-            ]
+                {
+                    sourceUrl: 'https://www.jeuxactu.com/rss/ja.rss',
+                    switch: false
+                },
+                {
+                    sourceUrl: 'https://www.lemonde.fr/pixels/rss_full.xml',
+                    switch: false
+                },
+                {
+                    sourceUrl: 'https://www.lemonde.fr/jeux-video/rss_full.xml',
+                    switch: false
+                },
+                {
+                    sourceUrl: 'https://www.lemonde.fr/cultures-web/rss_full.xml',
+                    switch: false
+                }
+            ],
+            articleList: [],
+            currentArticles: [],
+            
+            filterArticle: function(){
+                m.currentArticles = [];
+                sourcesSwitch = m.sourcesList.filter(e => e.switch == true)
+                sourcesSwitch.forEach(source => {
+                    m.articleList.filter(e => e.id == source.sourceUrl).forEach(f => {
+                        m.currentArticles.push(f);
+                    })
+                })
+                console.log(m.currentArticles);
+            }
         }
         
         let c = {
@@ -39,28 +64,33 @@
                 });
             },
 
-            fetchRSS: function(url){
+            fetchRSS: function(source){
                 let xhr = new XMLHttpRequest();
                     xhr.onreadystatechange = function(){
                         if (xhr.status==200 && xhr.readyState==4){
                             m.data = JSON.parse(xhr.responseText)
-                            v.renderFlux(m.data, url)
+                            v.renderFlux(m.data, source)
+                            m.data.channel.item.forEach(e => {
+                                m.articleList.push({'article': e, 'id': source.sourceUrl})
+                            });
                         }
                     };
-                    xhr.open('get', "https://quentin-huet.fr/pt/script/getRss.php?flux=" + url);
+                    xhr.open('get', "https://quentin-huet.fr/pt/script/getRss.php?flux=" + source.sourceUrl);
                     xhr.send();
             },
 
-            handlerClickFlux: function(url) {
-                let xhr = new XMLHttpRequest();
-                    xhr.onreadystatechange = function(){
-                        if (xhr.status==200 && xhr.readyState==4){
-                            m.data = JSON.parse(xhr.responseText)
-                            v.renderArticles(m.data, url)
-                        }
-                    };
-                    xhr.open('get', "https://quentin-huet.fr/pt/script/getRss.php?flux=" + url);
-                    xhr.send();
+            handlerClickFlux: function(source, target) {
+                if(source.switch==false){
+                    source.switch = true;
+                    m.filterArticle();
+                    v.renderArticles(m.currentArticles);
+                    target.style = 'color: #F00'
+                }else{
+                    source.switch = false;
+                    m.filterArticle();
+                    v.renderArticles(m.currentArticles);
+                    target.style = 'color: #000'
+                }
             }
         }
 
@@ -68,44 +98,41 @@
             fluxList: document.querySelector('.rss_list'),
             itemList: document.querySelector('.item_list'),
 
-            renderFlux: function(flux, id) {
+            renderFlux: function(flux, source) {
                 // Rendu du titre dans la liste des flux
                 itemFlux = document.createElement('li')
                 title = document.createElement('p')
 
-                itemFlux.id = id
-                itemFlux.addEventListener('click', function(){c.handlerClickFlux(id)})
+                itemFlux.id = source.sourceUrl
+                itemFlux.addEventListener('click', function(ev){c.handlerClickFlux(source, ev.target)})
                 title.textContent = flux.channel.title
 
                 itemFlux.appendChild(title)
                 v.fluxList.appendChild(itemFlux)
             },
 
-            renderArticles(flux, id) {
-
-                flux.channel.item.forEach(e => {
+            renderArticles() {
+                v.itemList.innerHTML = '';
+                m.currentArticles.forEach(e => {
                     itemArticle = document.createElement('li')
-                    article = document.createElement('article')
                     
                     title = document.createElement('h3')
                     desc = document.createElement('p')
                     link = document.createElement('a')
                     date = document.createElement('span')
 
-                    title.textContent = e.title
-                    desc.textContent = e.description
+                    title.textContent = e.article.title
+                    desc.textContent = e.article.description
                     link.textContent = 'lien'
-                    link.href = e.link
-                    date.textContent = e.pubDate
+                    link.href = e.article.link
+                    date.textContent = e.article.pubDate
 
-                    itemArticle.id = id
+                    itemArticle.id = e.id
 
-                    article.appendChild(title)
-                    article.appendChild(desc)
-                    article.appendChild(link)
-                    article.appendChild(date)
-
-                    itemArticle.appendChild(article)
+                    itemArticle.appendChild(title)
+                    itemArticle.appendChild(desc)
+                    itemArticle.appendChild(link)
+                    itemArticle.appendChild(date)
 
                     v.itemList.appendChild(itemArticle)
                 });
