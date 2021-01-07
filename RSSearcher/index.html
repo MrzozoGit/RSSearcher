@@ -7,6 +7,7 @@
     <link href="/style/style.css" rel="stylesheet">
 </head>
 <body>
+<<<<<<< HEAD
     <h1 class="title">RSSearcher</h1>
 
     <section class="rss_section">
@@ -16,5 +17,36 @@
         </div>
     </section>
 
+=======
+
+
+
+    <script>
+
+        let m = {
+            data: null
+        }
+        
+        let c = {
+            fetchRSS: function(){
+                let xhr = new XMLHttpRequest();
+                    xhr.onreadystatechange = function(){
+                        if (xhr.status==200 && xhr.readyState==4){
+                            m.data = xhr.responseText;
+                        }
+                    };
+                    xhr.open('get', "script/getRss.php?flux=https://www.lemonde.fr/campus/rss_full.xml");
+                    xhr.send();
+            }
+        }
+
+        let v = {
+            
+        }
+
+        c.fetchRSS()
+
+    </script>
+>>>>>>> 71f3dc33153d366e4e72f99ffa61fcd3017223a6
 </body>
 </html>
