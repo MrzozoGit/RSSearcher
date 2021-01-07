@@ -24,14 +24,14 @@
         }
         
         let c = {
-            fetchRSS: function(){
+            fetchRSS: function(url){
                 let xhr = new XMLHttpRequest();
                     xhr.onreadystatechange = function(){
                         if (xhr.status==200 && xhr.readyState==4){
-                            m.data = xhr.responseText;
+                            m.data = JSON.parse(xhr.responseText);
                         }
                     };
-                    xhr.open('get', "script/getRss.php?flux=https://www.lemonde.fr/campus/rss_full.xml");
+                    xhr.open('get', "https://quentin-huet.fr/pt/script/getRss.php?flux=" + url);
                     xhr.send();
             }
         }
@@ -40,7 +40,7 @@
             
         }
 
-        c.fetchRSS()
+        c.fetchRSS('https://www.lemonde.fr/cultures-web/rss_full.xml')
 
     </script>
 </body>
