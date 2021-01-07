@@ -6,6 +6,9 @@
     <link href="style.css" rel="stylesheet">
 </head>
 <body>
+
     <!--test 1 2 3-->
+    <!-- add view here -->
+
 </body>
 </html>
