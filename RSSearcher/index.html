@@ -12,15 +12,21 @@
 
     <section class="rss_section">
         <h2 class="rss_title">Flux RSS</h2>
-        <div class="rss_list">
-            <p class="rss_element">Exemple de flux RSS.</p>
-        </div>
+        <ul class="rss_list">
+            
+        </ul>
     </section>
 
     <script>
 
         let m = {
-            data: null
+            data: null,
+            flux: [
+                'https://www.jeuxactu.com/rss/ja.rss',
+                'https://www.lemonde.fr/pixels/rss_full.xml',
+                'https://www.lemonde.fr/jeux-video/rss_full.xml',
+                'https://www.lemonde.fr/cultures-web/rss_full.xml'
+            ]
         }
         
         let c = {
@@ -28,19 +34,31 @@
                 let xhr = new XMLHttpRequest();
                     xhr.onreadystatechange = function(){
                         if (xhr.status==200 && xhr.readyState==4){
-                            m.data = JSON.parse(xhr.responseText);
+                            m.data = JSON.parse(xhr.responseText)
+                            v.renderFlux(m.data)
                         }
                     };
                     xhr.open('get', "https://quentin-huet.fr/pt/script/getRss.php?flux=" + url);
                     xhr.send();
-            }
+            },
         }
 
         let v = {
-            
+            listeFlux: document.querySelector('.rss_list'),
+
+            renderFlux: function(flux){
+                list_element = document.createElement('li')
+                title = document.createElement('p')
+
+                title.textContent = flux.channel.title
+
+                list_element.appendChild(title)
+                v.listeFlux.appendChild(list_element)
+            }
         }
 
         c.fetchRSS('https://www.lemonde.fr/cultures-web/rss_full.xml')
+        c.fetchRSS('https://www.jeuxactu.com/rss/ja.rss')
 
     </script>
 </body>
