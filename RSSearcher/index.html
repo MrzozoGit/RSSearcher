@@ -6,6 +6,34 @@
     <title>Document</title>
 </head>
 <body>
-    
+
+
+
+    <script>
+
+        let m = {
+            data: null
+        }
+        
+        let c = {
+            fetchRSS: function(){
+                let xhr = new XMLHttpRequest();
+                    xhr.onreadystatechange = function(){
+                        if (xhr.status==200 && xhr.readyState==4){
+                            m.data = xhr.responseText;
+                        }
+                    };
+                    xhr.open('get', "script/getRss.php?flux=https://www.lemonde.fr/campus/rss_full.xml");
+                    xhr.send();
+            }
+        }
+
+        let v = {
+            
+        }
+
+        c.fetchRSS()
+
+    </script>
 </body>
 </html>
