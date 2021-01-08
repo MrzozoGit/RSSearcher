@@ -16,33 +16,38 @@
         <h2 class="rssSection_title">Flux RSS</h2>
         <ul class="rssSection_list"></ul>
     </section>
-
+    
     <section class="itemSection">
         <h2 class="itemSection_title">Liste des articles</h2>
         <ul class="itemSection_list"></ul>
     </section>
-
+aaa
     <script>
 
         let m = {
             data: null,
+            idCounter: null,
             sourcesList: [
                 {
+                    id: 'id0',
                     sourceUrl: 'https://www.jeuxactu.com/rss/ja.rss',
                     switch: false,
                     fav: false
                 },
                 {
+                    id: 'id1',
                     sourceUrl: 'https://www.lemonde.fr/pixels/rss_full.xml',
                     switch: false,
                     fav: false
                 },
                 {
+                    id: 'id2',
                     sourceUrl: 'https://www.lemonde.fr/jeux-video/rss_full.xml',
                     switch: false,
                     fav: false
                 },
                 {
+                    id: 'id3',
                     sourceUrl: 'https://www.lemonde.fr/cultures-web/rss_full.xml',
                     switch: false,
                     fav: false
@@ -66,17 +71,39 @@
                 m.sourcesList.push(fluxToAdd)
             },
             
-            addFav: function(fav) {
-                fav = true;
+            addFav: function(source, sw) {
+                source.fav = sw;
+                m.updateFav();
+            },
+
+            updateFav: function(){
+                let favTab = []
+                m.sourcesList.forEach(e => {
+                    if (e.fav)
+                        favTab.push(e.sourceUrl)
+                });
+                localStorage.setItem("favs", JSON.stringify(favTab))
+            },
+
+            initFav: function() {
+                m.idCounter = 'id' + toString(m.sourcesList.length)
+                favs = JSON.parse(localStorage.getItem("favs"))
+                favs.forEach(e => {
+                    m.sourcesList.forEach(f => {
+                        if (f.sourceUrl == e)
+                            f.fav = true
+                    })
+                });
             }
         }
         
         let c = {
             init: function() {
-                v.init()
+                m.initFav()
                 m.sourcesList.forEach(e => {
                     c.fetchRSS(e)
                 });
+                v.init()
             },
 
             fetchRSS: function(source) {
@@ -86,9 +113,8 @@
                         m.data = JSON.parse(xhr.responseText)
                         v.renderFlux(m.data, source)
                         m.data.channel.item.forEach(e => {
-                            m.articleList.push({'article': e, 'id': source.sourceUrl})
+                            m.articleList.push({'article': e, 'id': source.id})
                         });
-                        
                     }
                 };
                 xhr.open('get', "https://quentin-huet.fr/pt/script/getRss.php?flux=" + source.sourceUrl);
@@ -112,7 +138,8 @@
             handlerAdd: function() {
                 str = v.inputText.value
                 if (str.includes("https://") || str.includes("http://") & str.includes(".xml")) {
-                    tempObj = {'sourceUrl': str, 'switch': false, 'fav': false}
+                    tempObj = {'id': m.idCounter,'sourceUrl': str, 'switch': false, 'fav': false}
+                    m.idCounter++;
                     c.fetchRSS(tempObj)
                     m.addFlux(tempObj)
                     v.inputText.value = "";
@@ -121,10 +148,10 @@
 
             handlerFav: function(source, target){
                 if (source.fav == false){
-                    m.addFav();
+                    m.addFav(source, true);
                     target.style = 'color: #F00';
                 } else {
-                    m.addFav();
+                    m.addFav(source, false);
                     target.style = 'color: #000';
                 }
             }
@@ -138,6 +165,7 @@
 
             init: function() {
                 v.addButton.addEventListener('click', c.handlerAdd)
+                //v.renderFav();
             },
 
             renderFlux: function(flux, source) {
@@ -148,9 +176,9 @@
                 title = document.createElement('p')
                 title.classList.add('rssSection_list_li_title');
                 fav = document.createElement('p');
-                fav.classList.add('rss_element_fav');
+                fav.classList.add('rssSection_list_li_fav');
 
-                itemFlux.id = source.sourceUrl
+                itemFlux.id = source.id
                 title.textContent = flux.channel.title
                 title.addEventListener('click', function(ev){c.handlerClickFlux(source, ev.target)})
 
@@ -160,6 +188,7 @@
                 itemFlux.appendChild(title)
                 itemFlux.appendChild(fav);
                 v.fluxList.appendChild(itemFlux)
+                v.renderFav();
             },
 
             renderArticles(articles) {
@@ -183,9 +212,9 @@
                     link.href = e.article.link
                     date.textContent = e.article.pubDate
 
-                    // console.log(e.article.enclosure)
                     image = document.createElement('img');
                     image.classList.add('itemSection_list_li_img')
+                    image.src = e.article.enclosure["@attributes"].url;
 
                     itemArticle.id = e.id
 
@@ -196,6 +225,14 @@
 
                     v.itemList.appendChild(itemArticle)
                 });
+            },
+
+            renderFav(){
+                m.sourcesList.forEach(e => {
+                    if (e.fav) {
+                        document.querySelector('#'+e.id).querySelector('.rssSection_list_li_fav').style = 'color: #F00';
+                    }
+                })
             }
         }
 
