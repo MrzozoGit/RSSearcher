@@ -7,17 +7,19 @@
     <link href="style/style.css" rel="stylesheet">
 </head>
 <body>
+    <input class="inputText" type="url" pattern="https?://.+.xml+" required></input>
+    <input class="addButton" type="button" value="Ajouter">
 
-    <h1 class="title">RSSearcher</h1>
+    <h1 class="title">RSSearcher Jour 2</h1>
 
-    <section class="rss_section">
-        <h2 class="rss_section_title">Flux RSS</h2>
-        <ul class="rss_list"></ul>
+    <section class="rssSection">
+        <h2 class="rssSection_title">Flux RSS</h2>
+        <ul class="rssSection_list"></ul>
     </section>
 
-    <section class="item_section">
-        <h2 class="item_section_title">Liste des articles</h2>
-        <ul class="item_list"></ul>
+    <section class="itemSection">
+        <h2 class="itemSection_title">Liste des articles</h2>
+        <ul class="itemSection_list"></ul>
     </section>
 
     <script>
@@ -27,25 +29,29 @@
             sourcesList: [
                 {
                     sourceUrl: 'https://www.jeuxactu.com/rss/ja.rss',
-                    switch: false
+                    switch: false,
+                    fav: false
                 },
                 {
                     sourceUrl: 'https://www.lemonde.fr/pixels/rss_full.xml',
-                    switch: false
+                    switch: false,
+                    fav: false
                 },
                 {
                     sourceUrl: 'https://www.lemonde.fr/jeux-video/rss_full.xml',
-                    switch: false
+                    switch: false,
+                    fav: false
                 },
                 {
                     sourceUrl: 'https://www.lemonde.fr/cultures-web/rss_full.xml',
-                    switch: false
+                    switch: false,
+                    fav: false
                 }
             ],
             articleList: [],
             currentArticles: [],
             
-            filterArticle: function(){
+            filterArticle: function() {
                 m.currentArticles = [];
                 sourcesSwitch = m.sourcesList.filter(e => e.switch == true)
                 sourcesSwitch.forEach(source => {
@@ -54,78 +60,132 @@
                     })
                 })
                 console.log(m.currentArticles);
+            },
+
+            addFlux: function(fluxToAdd) {
+                m.sourcesList.push(fluxToAdd)
+            },
+            
+            addFav: function(fav) {
+                fav = true;
             }
         }
         
         let c = {
-            init: function(){
+            init: function() {
+                v.init()
                 m.sourcesList.forEach(e => {
                     c.fetchRSS(e)
                 });
             },
 
-            fetchRSS: function(source){
+            fetchRSS: function(source) {
                 let xhr = new XMLHttpRequest();
-                    xhr.onreadystatechange = function(){
-                        if (xhr.status==200 && xhr.readyState==4){
-                            m.data = JSON.parse(xhr.responseText)
-                            v.renderFlux(m.data, source)
-                            m.data.channel.item.forEach(e => {
-                                m.articleList.push({'article': e, 'id': source.sourceUrl})
-                            });
-                        }
-                    };
-                    xhr.open('get', "https://quentin-huet.fr/pt/script/getRss.php?flux=" + source.sourceUrl);
-                    xhr.send();
+                xhr.onreadystatechange = function() {
+                    if (xhr.status==200 && xhr.readyState==4) {
+                        m.data = JSON.parse(xhr.responseText)
+                        v.renderFlux(m.data, source)
+                        m.data.channel.item.forEach(e => {
+                            m.articleList.push({'article': e, 'id': source.sourceUrl})
+                        });
+                        
+                    }
+                };
+                xhr.open('get', "https://quentin-huet.fr/pt/script/getRss.php?flux=" + source.sourceUrl);
+                xhr.send();
             },
 
             handlerClickFlux: function(source, target) {
-                if(source.switch==false){
+                if (source.switch == false) {
                     source.switch = true;
                     m.filterArticle();
                     v.renderArticles(m.currentArticles);
                     target.style = 'color: #F00'
-                }else{
+                } else {
                     source.switch = false;
                     m.filterArticle();
                     v.renderArticles(m.currentArticles);
                     target.style = 'color: #000'
                 }
+            },
+
+            handlerAdd: function() {
+                str = v.inputText.value
+                if (str.includes("https://") || str.includes("http://") & str.includes(".xml")) {
+                    tempObj = {'sourceUrl': str, 'switch': false, 'fav': false}
+                    c.fetchRSS(tempObj)
+                    m.addFlux(tempObj)
+                    v.inputText.value = "";
+                }
+            },
+
+            handlerFav: function(source, target){
+                if (source.fav == false){
+                    m.addFav();
+                    target.style = 'color: #F00';
+                } else {
+                    m.addFav();
+                    target.style = 'color: #000';
+                }
             }
         }
 
         let v = {
-            fluxList: document.querySelector('.rss_list'),
-            itemList: document.querySelector('.item_list'),
+            fluxList: document.querySelector('.rssSection_list'),
+            itemList: document.querySelector('.itemSection_list'),
+            inputText: document.querySelector('.inputText'),
+            addButton: document.querySelector('.addButton'),
+
+            init: function() {
+                v.addButton.addEventListener('click', c.handlerAdd)
+            },
 
             renderFlux: function(flux, source) {
                 // Rendu du titre dans la liste des flux
                 itemFlux = document.createElement('li')
+                itemFlux.classList.add('rssSection_list_li')
+
                 title = document.createElement('p')
+                title.classList.add('rssSection_list_li_title');
+                fav = document.createElement('p');
+                fav.classList.add('rss_element_fav');
 
                 itemFlux.id = source.sourceUrl
-                itemFlux.addEventListener('click', function(ev){c.handlerClickFlux(source, ev.target)})
                 title.textContent = flux.channel.title
+                title.addEventListener('click', function(ev){c.handlerClickFlux(source, ev.target)})
+
+                fav.textContent = "ajouter en favori";
+                fav.addEventListener('click', function(ev){c.handlerFav(source, ev.target)});
 
                 itemFlux.appendChild(title)
+                itemFlux.appendChild(fav);
                 v.fluxList.appendChild(itemFlux)
             },
 
-            renderArticles() {
+            renderArticles(articles) {
                 v.itemList.innerHTML = '';
-                m.currentArticles.forEach(e => {
+                articles.forEach(e => {
                     itemArticle = document.createElement('li')
+                    itemArticle.classList.add('itemSection_list_li');
                     
                     title = document.createElement('h3')
+                    title.classList.add('itemSection_list_li_title');
                     desc = document.createElement('p')
+                    desc.classList.add('itemSection_list_li_desc');
                     link = document.createElement('a')
+                    link.classList.add('itemSection_list_li_link');
                     date = document.createElement('span')
+                    date.classList.add('itemSection_list_li_date');
 
                     title.textContent = e.article.title
                     desc.textContent = e.article.description
                     link.textContent = 'lien'
                     link.href = e.article.link
                     date.textContent = e.article.pubDate
+
+                    // console.log(e.article.enclosure)
+                    image = document.createElement('img');
+                    image.classList.add('itemSection_list_li_img')
 
                     itemArticle.id = e.id
 
