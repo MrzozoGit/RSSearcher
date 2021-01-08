@@ -1,0 +1,59 @@
+:root {
+    --red: #FF4554;
+    --yellow: #FFC107;
+    --gray-light: #EAECF4;
+    --gray: #D5D8E5;
+    --white: #FFF;
+}
+
+body {
+    background-color: var(--white);
+    display: flex;
+    position: relative;
+}
+
+header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.navbar {
+    width: 75px;
+    height: 100vh;
+    background-color: var(--gray-light);
+}
+
+.nav_igLogo {
+    height: 48px;
+    width: 48px;
+    margin-bottom: 60px;
+}
+
+.nav_rssSection_list_li {
+    display: flex;
+    align-items:  center;
+}
+
+.nav_rssSection_list_li_plus {
+    font-size: 48px;
+    
+}
+
+.nav_rssSection_list_li_fluxLogo {
+    height: 48px;
+    width: 48px;
+}
+
+.nav_rssSection_list_li {
+    cursor: pointer;
+}
+
+.nav_rssSection_list_li_fav {
+    cursor: pointer;
+}
+
+.main_top_fav, .main_top_sort {
+    width: 48px;
+    height: 48px;
+}
