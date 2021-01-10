@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>In-Game RSS b</title>
+    <title>In-Game RSS 29</title>
     <link href="style/reset.css" rel="stylesheet">
     <link href="style/monStyle.css" rel="stylesheet">
 </head>
@@ -40,6 +40,24 @@
         <nav class="main_top">
             <img src="data/svg/star.svg" alt="" class="main_top_fav">
             <img src="data/svg/chronoR.svg" alt="" class="main_top_sort">
+            <div class="main_top_categoryBox">
+                <img class="main_top_categoryBox_arrow" src="data/svg/arrow.svg">
+                <span class="main_top_categoryBox_text">Sélectionner une catégorie</span>
+                <ul class="main_top_categoryBox_list">
+                    <li class="main_top_categoryBox_list_li">
+                        <span class="main_top_categoryBox_list_li_text">Jeux vidéo</span>
+                    </li>
+                    <li class="main_top_categoryBox_list_li">
+                        <span class="main_top_categoryBox_list_li_text">Pixels</span>
+                    </li>
+                    <li class="main_top_categoryBox_list_li">
+                        <span class="main_top_categoryBox_list_li_text">Cultures web</span>
+                    </li>
+                    <li class="main_top_categoryBox_list_li">
+                        <span class="main_top_categoryBox_list_li_text">Toute l'actualité</span>
+                    </li>
+                </ul>
+            </div>
             <div class="main_top_searchbarBox">
                 <input class="main_top_searchbarBox_search"></input>
                 <img class="main_top_searchbarBox_button" src="data/svg/search.svg">
@@ -103,9 +121,8 @@
             init: function() {
                 m.initFlux();
                 m.sourcesUrlList.forEach(e => {
-                    m.addFluxObj(e);
+                    m.createFluxObj(e);
                 });
-                m.initFav();
             },
             
             filterArticle: function() {
@@ -130,11 +147,11 @@
                 m.updateLocalFlux();
             },
 
-            addFluxObj: function(url) {
-                tempObj = tempObj = {'id': 'id' + m.idCounter,'sourceUrl': url, 'switch': false, 'fav': false, articles: []}
-                m.idCounter++;
-                c.fetchRSS(tempObj);
+            createFluxObj: function(url) {
+                tempObj = tempObj = {'id': 'id' + m.idCounter, 'name': null, 'sourceUrl': url, 'switch': false, 'fav': false, articles: []};
                 m.sourcesList.push(tempObj);
+                m.idCounter++;
+                //return tempObj;
             },
 
             updateLocalFlux: function() {
@@ -167,10 +184,21 @@
                 localStorage.setItem("favs", JSON.stringify(favTab));
             }
         }
-        
+
         let c = {
             init: function() {
                 m.init();
+                // m.sourcesList.forEach(e => {
+                //     setTimeout(async function() {
+                //         //c.fetchRSS(e);
+                //         await c.fetchRSS(e);
+                //     },1000);
+                //     v.renderFlux(e);
+                // });
+                m.sourcesList.forEach(e => {
+                    c.fetchRSS(e);
+                });
+                m.initFav();
                 v.init();
             },
 
@@ -180,10 +208,11 @@
                     if (xhr.status==200 && xhr.readyState==4) {
                         m.data = JSON.parse(xhr.responseText);
                         if (m.data != false) {
-                            v.renderFlux(m.data, source);
+                            source.name = m.data.channel.title;
                             m.data.channel.item.forEach(e => {
                                 source.articles.push({'article': e, 'id': source.id});
                             });
+                            v.renderFlux(source);
                         }
                     }
                 };
@@ -250,7 +279,7 @@
                 //v.renderFav();
             },
 
-            renderFlux: function(flux, source) {
+            renderFlux: async function(source) {
                 // Rendu du titre dans la liste des flux
                 itemFlux = document.createElement('li');
                 itemFlux.classList.add('nav_rssSection_list_li');
@@ -261,7 +290,7 @@
                 fav.classList.add('nav_rssSection_list_li_fav');
 
                 itemFlux.id = source.id;
-                title.textContent = flux.channel.title;
+                title.textContent = source.name;
                 title.addEventListener('click', function(ev){c.handlerClickFlux(source, ev.target)});
 
                 fav.textContent = "ajouter en favori";
@@ -322,6 +351,7 @@
             },
 
             renderFav() {
+                //A CHANGER : PAS DE M DANS LE V                
                 m.sourcesList.forEach(e => {
                     if (e.fav) {
                         document.querySelector('#'+e.id).querySelector('.nav_rssSection_list_li_fav').style = 'color: #F00';
@@ -342,7 +372,7 @@
             }
         }
         
-        v.showOverlay();
+        // v.showOverlay();
         c.init();
 
     </script>

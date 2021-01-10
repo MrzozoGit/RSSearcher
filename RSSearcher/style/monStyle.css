@@ -41,15 +41,13 @@ body {
     left: 50%;
     transform: translate(-50%, -50%);
     overflow-x: hidden;
-}
 
-.addFluxBox {
     background-color: var(--gray-light);
     padding: 1rem;
     display: none;
     column-gap: 1.5rem;
     width: fit-content;
-}
+} 
 
 .addFluxOverlay_box_inputText {
     border: 0;
@@ -90,6 +88,7 @@ body {
 .nav_rssSection_list_li {
     display: flex;
     align-items: center;
+    row-gap: 1.5rem;
 }
 
 .nav_rssSection_list_li_plus {
@@ -128,6 +127,58 @@ body {
     height: 4.8rem;
 }
 
+.main_top_categoryBox {
+    background-color: var(--gray-light);
+    padding: 1rem;
+    column-gap: 1.5rem;
+    width: fit-content;
+    display: inline-block;
+    position: relative;
+}
+
+.main_top_categoryBox_arrow {
+    transform: rotate(90deg);
+}
+
+.main_top_categoryBox_text {
+    font-size: 2.4em;
+}
+
+.main_top_categoryBox_list {
+    display: none;
+    position: absolute;
+    width: 100%;
+    background-color: var(--gray-light);
+    z-index: 1;
+}
+
+/* PLUS TARD PAS EN HOVER → AU CLICK */
+.main_top_categoryBox:hover .main_top_categoryBox_list {
+    display: block;
+}
+
+.main_top_categoryBox_list_li_text {
+    font-size: 2.4em;
+}
+
+.main_top_searchbarBox {
+    background-color: var(--gray-light);
+    padding: 1rem;
+    column-gap: 1.5rem;
+    width: fit-content;
+    display: flex;
+}
+
+.main_top_searchbarBox_search {
+    border: 0;
+    -webkit-appearance: none;
+}
+
+.main_top_searchbarBox_search:focus {
+    border: 0;
+    outline-width: 0;
+}
+
 /* LISTE D'ARTICLES */
 
 .itemSection_list {
@@ -135,6 +186,7 @@ body {
     flex: 1;
     flex-wrap: wrap;
     row-gap: 6rem;
+    
 }
 
 .itemSection_list_li {
@@ -147,6 +199,14 @@ body {
 
 .itemSection_list_li_img {
     width: 100%;
+}
+
+/* /!\ */
+/* NE MARCHE PAS */
+/* /!\ */
+.itemSection_list_li_img:hover .itemSection_list_li_title {
+    opacity: 80%;
+    color: var(--red);
 }
 
 .itemSection_list_li_link:hover {
