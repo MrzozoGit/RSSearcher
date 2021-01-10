@@ -3,11 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>In-Game RSS</title>
+    <title>In-Game RSS b</title>
     <link href="style/reset.css" rel="stylesheet">
     <link href="style/monStyle.css" rel="stylesheet">
 </head>
 <body>
+    <div class="addFluxOverlay"></div>
+    <div class="addFluxBox">
+        <input class="addFluxOverlay_box_inputText" type="url"></input>
+        <img class="addFluxOverlay_box_addButton" src="data/svg/plus.svg">
+    </div>
+
     <header class="navbar">
         <img src="data/img/igLogo.png" alt="In-Game RSS" class="nav_igLogo">
         <section class="nav_rssSection">
@@ -31,12 +37,14 @@
         </section>
     </header>
     <section class="main">
-        <section class="main_top">
+        <nav class="main_top">
             <img src="data/svg/star.svg" alt="" class="main_top_fav">
             <img src="data/svg/chronoR.svg" alt="" class="main_top_sort">
-            <input class="main_top_inputText" type="url" pattern="https?://.+.xml+" required></input>
-            <input class="main_top_addButton" type="button" value="Ajouter">
-        </section>
+            <div class="main_top_searchbarBox">
+                <input class="main_top_searchbarBox_search"></input>
+                <img class="main_top_searchbarBox_button" src="data/svg/search.svg">
+            </div>
+        </nav>
 
         <section class="itemSection">
             <!-- <h2 class="itemSection_title">Liste des articles</h2> -->
@@ -87,42 +95,16 @@
 
         let m = {
             data: null,
-            idCounter: null,
-            sourceUrlList: ['https://www.jeuxactu.com/rss/ja.rss', 'https://www.lemonde.fr/pixels/rss_full.xml', 'https://www.lemonde.fr/jeux-video/rss_full.xml', 'https://www.lemonde.fr/cultures-web/rss_full.xml'],
-            sourcesList: [
-                {
-                    id: 'id0',
-                    sourceUrl: 'https://www.jeuxactu.com/rss/ja.rss',
-                    switch: false,
-                    fav: false,
-                    articles: []
-                },
-                {
-                    id: 'id1',
-                    sourceUrl: 'https://www.lemonde.fr/pixels/rss_full.xml',
-                    switch: false,
-                    fav: false,
-                    articles: []
-                },
-                {
-                    id: 'id2',
-                    sourceUrl: 'https://www.lemonde.fr/jeux-video/rss_full.xml',
-                    switch: false,
-                    fav: false,
-                    articles: []
-                },
-                {
-                    id: 'id3',
-                    sourceUrl: 'https://www.lemonde.fr/cultures-web/rss_full.xml',
-                    switch: false,
-                    fav: false,
-                    articles: []
-                }
-            ],
+            idCounter: 0,
+            sourcesUrlList: ['https://www.jeuxactu.com/rss/ja.rss', 'https://www.lemonde.fr/pixels/rss_full.xml', 'https://www.lemonde.fr/jeux-video/rss_full.xml', 'https://www.lemonde.fr/cultures-web/rss_full.xml'],
+            sourcesList: [],
             currentArticles: [],
 
             init: function() {
-                m.idCounter = m.sourcesList.length;
+                m.initFlux();
+                m.sourcesUrlList.forEach(e => {
+                    m.addFluxObj(e);
+                });
                 m.initFav();
             },
             
@@ -136,41 +118,33 @@
                 });
             },
 
-            addFluxUrl: function(url) {
-                m.sourceUrlList.push(url);
+            initFlux: function() {
+                flux = JSON.parse(localStorage.getItem("flux"));
+                if (flux != null){
+                    m.sourcesUrlList = flux;
+                }
             },
 
-            //EMPLACEMENT TEMPORAIRE
-            addFluxObj: function(url){
+            addFluxUrl: function(url) {
+                m.sourcesUrlList.push(url);
+                m.updateLocalFlux();
+            },
+
+            addFluxObj: function(url) {
                 tempObj = tempObj = {'id': 'id' + m.idCounter,'sourceUrl': url, 'switch': false, 'fav': false, articles: []}
                 m.idCounter++;
                 c.fetchRSS(tempObj);
                 m.sourcesList.push(tempObj);
             },
-            //EMPLACEMENT TEMPORAIRE
 
-
-            updateLocalFlux: function(){
-                localStorage.setItem("flux", JSON.stringify(fluxTab))
-            },
-
-            initFlux: function(){
-                flux = JSON.parse(localStorage.getItem("flux"))
-                m.sourceUrlList = flux
+            updateLocalFlux: function() {
+                console.log('update flux');
+                localStorage.setItem("flux", JSON.stringify(m.sourcesUrlList));
             },
             
             addFav: function(source, sw) {
                 source.fav = sw;
                 m.updateLocalFav();
-            },
-
-            updateLocalFav: function(){
-                let favTab = [];
-                m.sourcesList.forEach(e => {
-                    if (e.fav)
-                        favTab.push(e.sourceUrl);
-                });
-                localStorage.setItem("favs", JSON.stringify(favTab));
             },
 
             initFav: function() {
@@ -181,27 +155,36 @@
                             f.fav = true;
                     })
                 });
+            },
+
+            updateLocalFav: function() {
+                let favTab = [];
+                m.sourcesList.forEach(e => {
+                    if (e.fav){
+                        favTab.push(e.sourceUrl);
+                    }
+                });
+                localStorage.setItem("favs", JSON.stringify(favTab));
             }
         }
         
         let c = {
             init: function() {
                 m.init();
-                m.sourcesList.forEach(e => {
-                    c.fetchRSS(e)
-                });
-                v.init()
+                v.init();
             },
 
             fetchRSS: function(source) {
                 let xhr = new XMLHttpRequest();
                 xhr.onreadystatechange = function() {
                     if (xhr.status==200 && xhr.readyState==4) {
-                        m.data = JSON.parse(xhr.responseText)
-                        v.renderFlux(m.data, source)
-                        m.data.channel.item.forEach(e => {
-                            source.articles.push({'article': e, 'id': source.id})
-                        });
+                        m.data = JSON.parse(xhr.responseText);
+                        if (m.data != false) {
+                            v.renderFlux(m.data, source);
+                            m.data.channel.item.forEach(e => {
+                                source.articles.push({'article': e, 'id': source.id});
+                            });
+                        }
                     }
                 };
                 xhr.open('get', "https://quentin-huet.fr/pt/script/getRss.php?flux=" + source.sourceUrl);
@@ -213,33 +196,35 @@
                     source.switch = true;
                     m.filterArticle();
                     v.renderArticles(m.currentArticles);
-                    target.style = 'color: #F00'
+                    target.style = 'color: #F00';
                 } else {
                     source.switch = false;
                     m.filterArticle();
                     v.renderArticles(m.currentArticles);
-                    target.style = 'color: #000'
+                    target.style = 'color: #000';
                 }
             },
 
             handlerAdd: function() {
-                str = v.inputText.value
-                alreadyAdded = false
+                str = v.inputText.value;
+                alreadyAdded = false;
                 if ((str.includes("https://") || str.includes("http://")) & (str.includes(".xml") || (str.includes(".rss")))) {
                     m.sourcesList.forEach(e => {
-                        if (str == e.sourceUrl){
-                            alreadyAdded = true
+                        if (str == e.sourceUrl) {
+                            alreadyAdded = true;
                         }      
                     })
-                    if (alreadyAdded == false){
-                        addFluxObj(str);
-                        v.inputText.value = "";   
+                    if (alreadyAdded == false) {
+                        m.addFluxUrl(str);
+                        m.addFluxObj(str);
+                        v.inputText.value = "";
+                        v.hideOverlay();
                     }
                 }
             },
 
             handlerFav: function(source, target) {
-                if (source.fav == false){
+                if (source.fav == false) {
                     m.addFav(source, true);
                     target.style = 'color: #F00';
                 } else {
@@ -252,34 +237,39 @@
         let v = {
             fluxList: document.querySelector('.rssSection_list'),
             itemList: document.querySelector('.itemSection_list'),
-            inputText: document.querySelector('.main_top_inputText'),
-            addButton: document.querySelector('.main_top_addButton'),
+            addFluxPlus: document.querySelector('.nav_rssSection_list_li_plus'),
+            addFluxOverlay: document.querySelector('.addFluxOverlay'),
+            addFluxBox: document.querySelector('.addFluxBox'),
+            inputText: document.querySelector('.addFluxOverlay_box_inputText'),
+            addButton: document.querySelector('.addFluxOverlay_box_addButton'),
 
             init: function() {
-                v.addButton.addEventListener('click', c.handlerAdd)
+                v.addFluxPlus.addEventListener('click', v.showOverlay);
+                v.addFluxOverlay.addEventListener('click', v.hideOverlay);
+                v.addButton.addEventListener('click', c.handlerAdd);
                 //v.renderFav();
             },
 
             renderFlux: function(flux, source) {
                 // Rendu du titre dans la liste des flux
-                itemFlux = document.createElement('li')
-                itemFlux.classList.add('nav_rssSection_list_li')
+                itemFlux = document.createElement('li');
+                itemFlux.classList.add('nav_rssSection_list_li');
 
-                title = document.createElement('p')
+                title = document.createElement('p');
                 title.classList.add('nav_rssSection_list_li_title');
                 fav = document.createElement('p');
                 fav.classList.add('nav_rssSection_list_li_fav');
 
-                itemFlux.id = source.id
-                title.textContent = flux.channel.title
-                title.addEventListener('click', function(ev){c.handlerClickFlux(source, ev.target)})
+                itemFlux.id = source.id;
+                title.textContent = flux.channel.title;
+                title.addEventListener('click', function(ev){c.handlerClickFlux(source, ev.target)});
 
                 fav.textContent = "ajouter en favori";
                 fav.addEventListener('click', function(ev){c.handlerFav(source, ev.target)});
 
-                itemFlux.appendChild(title)
+                itemFlux.appendChild(title);
                 itemFlux.appendChild(fav);
-                v.fluxList.appendChild(itemFlux)
+                v.fluxList.appendChild(itemFlux);
 
                 v.renderFav();
             },
@@ -287,57 +277,72 @@
             renderArticles(articles) {
                 v.itemList.innerHTML = '';
                 articles.forEach(e => {
-                    itemArticle = document.createElement('li')
+                    itemArticle = document.createElement('li');
                     itemArticle.classList.add('itemSection_list_li');
                     
-                    title = document.createElement('h3')
+                    title = document.createElement('h3');
                     title.classList.add('itemSection_list_li_title');
-                    desc = document.createElement('p')
+                    desc = document.createElement('p');
                     desc.classList.add('itemSection_list_li_desc');
-                    link = document.createElement('a')
+                    link = document.createElement('a');
                     link.classList.add('itemSection_list_li_link');
-                    linkImg = document.createElement('a')
+                    linkImg = document.createElement('a');
                     link.classList.add('itemSection_list_li_linkImg');
-                    date = document.createElement('span')
+                    date = document.createElement('span');
                     date.classList.add('itemSection_list_li_date');
 
-                    desc.textContent = e.article.description
-                    link.textContent = e.article.title
-                    link.href = e.article.link
-                    linkImg.href = e.article.link
-                    link.target = "_blank"
-                    date.textContent = e.article.pubDate
+                    desc.textContent = e.article.description;
+                    link.textContent = e.article.title;
+                    link.href = e.article.link;
+                    linkImg.href = e.article.link;
+                    link.target = "_blank";
+                    date.textContent = e.article.pubDate;
 
                     image = document.createElement('img');
-                    image.classList.add('itemSection_list_li_img')
-                    if(e.article.enclosure)
+                    image.classList.add('itemSection_list_li_img');
+                    if(e.article.enclosure) {
                         image.src = e.article.enclosure["@attributes"].url;
-                    else
+                    }
+                    else {
                         image.src = 'data:image/jpeg;base64,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'
+                    }
 
-                    itemArticle.id = e.id
+                    itemArticle.id = e.id;
 
-                    title.appendChild(link)
-                    linkImg.appendChild(image)
+                    title.appendChild(link);
+                    linkImg.appendChild(image);
 
-                    itemArticle.appendChild(linkImg)
-                    itemArticle.appendChild(title)
-                    itemArticle.appendChild(date)
-                    itemArticle.appendChild(desc)
+                    itemArticle.appendChild(linkImg);
+                    itemArticle.appendChild(title);
+                    itemArticle.appendChild(date);
+                    itemArticle.appendChild(desc);
 
-                    v.itemList.appendChild(itemArticle)
+                    v.itemList.appendChild(itemArticle);
                 });
             },
 
-            renderFav(){
+            renderFav() {
                 m.sourcesList.forEach(e => {
                     if (e.fav) {
                         document.querySelector('#'+e.id).querySelector('.nav_rssSection_list_li_fav').style = 'color: #F00';
                     }
                 })
+            },
+
+            showOverlay: function() {
+                v.addFluxOverlay.style.width = '100%';
+                v.addFluxBox.style.width = 'fit-content';
+                v.addFluxBox.style.display = 'flex';
+            },
+
+            hideOverlay: function() {
+                v.addFluxOverlay.style.width = '0';
+                v.addFluxBox.style.width = '0';
+                v.addFluxBox.style.display = 'none';
             }
         }
-
+        
+        v.showOverlay();
         c.init();
 
     </script>
