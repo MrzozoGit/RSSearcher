@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>In-Game RSS 29</title>
+    <title>In-Game RSS 32</title>
     <link href="style/reset.css" rel="stylesheet">
     <link href="style/monStyle.css" rel="stylesheet">
 </head>
@@ -20,18 +20,6 @@
             <ul class="rssSection_list">
                 <li class="nav_rssSection_list_li">
                     <span class="nav_rssSection_list_li_plus">+</span>
-                </li>
-                <li class="nav_rssSection_list_li">
-                    <img src="data/img/fluxLogo1.png" alt="" class="nav_rssSection_list_li_fluxLogo">
-                </li>
-                <li class="nav_rssSection_list_li">
-                    <img src="data/img/fluxLogo1.png" alt="" class="nav_rssSection_list_li_fluxLogo">
-                </li>
-                <li class="nav_rssSection_list_li">
-                    <img src="data/img/fluxLogo1.png" alt="" class="nav_rssSection_list_li_fluxLogo">
-                </li>
-                <li class="nav_rssSection_list_li">
-                    <img src="data/img/fluxLogo1.png" alt="" class="nav_rssSection_list_li_fluxLogo">
                 </li>
             </ul>
         </section>
@@ -212,6 +200,8 @@
                             m.data.channel.item.forEach(e => {
                                 source.articles.push({'article': e, 'id': source.id});
                             });
+                            console.log("source:");
+                            console.log(source);
                             v.renderFlux(source);
                         }
                     }
@@ -245,7 +235,7 @@
                     })
                     if (alreadyAdded == false) {
                         m.addFluxUrl(str);
-                        m.addFluxObj(str);
+                        m.createFluxObj(str);
                         v.inputText.value = "";
                         v.hideOverlay();
                     }
@@ -276,27 +266,38 @@
                 v.addFluxPlus.addEventListener('click', v.showOverlay);
                 v.addFluxOverlay.addEventListener('click', v.hideOverlay);
                 v.addButton.addEventListener('click', c.handlerAdd);
-                //v.renderFav();
             },
 
-            renderFlux: async function(source) {
+            renderFlux: function(source) {
                 // Rendu du titre dans la liste des flux
                 itemFlux = document.createElement('li');
                 itemFlux.classList.add('nav_rssSection_list_li');
 
-                title = document.createElement('p');
-                title.classList.add('nav_rssSection_list_li_title');
+                // title = document.createElement('p');
+                // title.classList.add('nav_rssSection_list_li_title');
+                icon = document.createElement('img');
+                icon.classList.add('nav_rssSection_list_li_fluxLogo');
+
+                if (source.sourceUrl.includes('jeuxactu'))
+                    icon.src = 'data/img/fluxJa.png'
+                else if (source.sourceUrl.includes('lemonde'))
+                    icon.src = 'data/img/fluxLm.png'
+                else if (source.sourceUrl)
+                    icon.src = 'data/img/fluxDefault.png'
+
                 fav = document.createElement('p');
                 fav.classList.add('nav_rssSection_list_li_fav');
 
                 itemFlux.id = source.id;
-                title.textContent = source.name;
-                title.addEventListener('click', function(ev){c.handlerClickFlux(source, ev.target)});
+                // title.textContent = source.name;
+                // à mettre sur l'image!!!!
+                icon.addEventListener('click', function(ev){c.handlerClickFlux(source, ev.target)});
 
                 fav.textContent = "ajouter en favori";
                 fav.addEventListener('click', function(ev){c.handlerFav(source, ev.target)});
 
-                itemFlux.appendChild(title);
+                // itemFlux.appendChild(title);
+                itemFlux.appendChild(icon)
                 itemFlux.appendChild(fav);
                 v.fluxList.appendChild(itemFlux);
 
