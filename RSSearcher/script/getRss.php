@@ -4,7 +4,10 @@ if ( isset($_REQUEST['flux']) && !empty($_REQUEST['flux']) )
 // on place l'adresse dans la variable $url (plus court à écrire)
 $url = $_REQUEST['flux'];
 // on charge le contenu du fichier XML dans la variable $fileContents
-$fileContents= file_get_contents($url);
+$fileContents = file_get_contents($url);
+
+$fileContents = str_replace("media:", "media", $fileContents);
+
 // on supprime éventuellement les caractères spéciaux (retour chariot, tabulation..)
 // qui pourrait poser problème lors de la conversion au format json
 $fileContents = str_replace(array("\n", "\r", "\t"), '', $fileContents);
