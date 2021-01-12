@@ -7,6 +7,7 @@ $url = $_REQUEST['flux'];
 $fileContents = file_get_contents($url);
 
 $fileContents = str_replace("media:", "media", $fileContents);
+$fileContents = str_replace("dc:date", "pubDate", $fileContents);
 
 // on supprime éventuellement les caractères spéciaux (retour chariot, tabulation..)
 // qui pourrait poser problème lors de la conversion au format json

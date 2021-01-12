@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewporst" content="width=device-width, initial-scale=1.0">
-    <title>(3.36) In-Game RSS</title>
+    <title>(4.144) In-Game RSS</title>
     <link href="style/reset.css" rel="stylesheet">
     <link href="style/monStyle.css" rel="stylesheet">
 </head>
@@ -15,7 +15,7 @@
     </div>
 
     <header class="navbar">
-        <img src="data/img/igLogo.png" alt="In-Game RSS" class="nav_igLogo">
+        <img src="data/svg/igLogoSmall.svg" alt="In-Game RSS" class="nav_igLogo">
         <section class="nav_rssSection">
             <ul class="nav_rssSection_list">
                 <li class="nav_rssSection_list_li">
@@ -32,7 +32,8 @@
                 <img class="main_top_categoryBox_arrow" src="data/svg/arrow.svg">
                 <span class="main_top_categoryBox_text">Catégories</span>
                 <ul class="main_top_categoryBox_list">
-                    <li class="main_top_categoryBox_list_li">
+                    <!-- Catégories factices pour tester -->
+                    <!-- <li class="main_top_categoryBox_list_li">
                         <span class="main_top_categoryBox_list_li_text">Jeux vidéo</span>
                     </li>
                     <li class="main_top_categoryBox_list_li">
@@ -43,7 +44,7 @@
                     </li>
                     <li class="main_top_categoryBox_list_li">
                         <span class="main_top_categoryBox_list_li_text">Toute l'actualité</span>
-                    </li>
+                    </li> -->
                 </ul>
             </div>
             <div class="main_top_searchbarBox">
@@ -71,9 +72,12 @@
         let m = {
             data: null,
             idCounter: 0,
-            sourcesUrlList: ['https://www.jeuxactu.com/rss/ja.rss', 'https://www.lemonde.fr/pixels/rss_full.xml', 'https://www.lemonde.fr/jeux-video/rss_full.xml', 'https://www.lemonde.fr/cultures-web/rss_full.xml'],
+            categorySwitch: false,
+            dateSwitch: true,
+            sourcesUrlList: ['https://www.jeuxactu.com/rss/ja.rss', 'https://www.lemonde.fr/jeux-video/rss_full.xml', 'https://www.jeuxonline.info/rss/actualites/rss.xml'],
             sourcesList: [],
             currentArticles: [],
+            categoryList: [],
 
             init: function() {
                 m.initFlux();
@@ -94,6 +98,13 @@
                 m.updateLocalFlux();
             },
 
+            addCategory: function(source) {
+                source.articles.forEach(e => {
+                    if (e.article.category && !m.categoryList.includes(e.article.category))
+                        m.categoryList.push(e.article.category);
+                })
+            },
+
             createFluxObj: function(url) {
                 tempObj = tempObj = {'id': 'id' + m.idCounter, 'name': null, 'sourceUrl': url, 'switch': false, 'fav': false, articles: []};
                 m.sourcesList.push(tempObj);
@@ -112,12 +123,14 @@
 
             initFav: function() {
                 favs = JSON.parse(localStorage.getItem("favs"));
-                favs.forEach(e => {
-                    m.sourcesList.forEach(f => {
-                        if (f.sourceUrl == e)
-                            f.fav = true;
-                    })
-                });
+                if(favs){
+                    favs.forEach(e => {
+                        m.sourcesList.forEach(f => {
+                            if (f.sourceUrl == e)
+                                f.fav = true;
+                        });
+                    });
+                }
             },
 
             updateLocalFav: function() {
@@ -131,6 +144,7 @@
             },
 
             filterFlux: function() {
+                //à factoriser
                 m.currentArticles = [];
                 sourcesSwitch = m.sourcesList.filter(e => e.switch == true);
                 sourcesSwitch.forEach(e => {
@@ -138,9 +152,11 @@
                         m.currentArticles.push(f);
                     });
                 });
+                //à factoriser
             },
 
             filterFav: function() {
+                //à factoriser
                 m.currentArticles = [];
                 sourcesFav = m.sourcesList.filter(e => e.fav == true);
                 sourcesFav.forEach(e => {
@@ -148,20 +164,69 @@
                         m.currentArticles.push(f);
                     });
                 });
+                //à factoriser
+
                 return sourcesFav;
+            },
+
+            filterCategory: function(category) {
+                //à factoriser
+                m.currentArticles = [];
+                m.sourcesList.forEach(e => {
+                    e.articles.forEach(f => {
+                        m.currentArticles.push(f);
+                    })
+                });
+                //à factoriser
+
+                m.currentArticles = m.currentArticles.filter(e => e.article.category == category);
+            },
+
+            filterDate: function(){
+                //à factoriser
+                m.currentArticles = [];
+                m.sourcesList.forEach(e => {
+                    e.articles.forEach(f => {
+                        m.currentArticles.push(f);
+                    });
+                });
+                //à factoriser
+                
+                comparer_date = function(item1, item2) {
+                    d1 = new Date(item1.article.pubDate);
+                    d2 = new Date(item2.article.pubDate);
+                    return d1.getTime() - d2.getTime();
+                }
+                m.currentArticles.sort(comparer_date);
+
+                if (m.dateSwitch == false){
+                    m.dateSwitch = true;
+                }
+                else if (m.dateSwitch == true){
+                    m.currentArticles = m.currentArticles.reverse();
+                    m.dateSwitch = false;
+                }
+            },
+
+            filterKeyword: function(keywords) {
+                //à factoriser
+                m.currentArticles = [];
+                m.sourcesList.forEach(e => {
+                    e.articles.forEach(f => {
+                        m.currentArticles.push(f);
+                    });
+                });
+                //à factoriser
+
+                keywords = keywords.toUpperCase();
+                m.currentArticles = m.currentArticles.filter(e => (e.article.description.toUpperCase().includes(keywords)) || (e.article.title.toUpperCase().includes(keywords)));
+                console.log(m.currentArticles);
             }
         }
 
         let c = {
             init: function() {
                 m.init();
-                // m.sourcesList.forEach(e => {
-                //     setTimeout(async function() {
-                //         //c.fetchRSS(e);
-                //         await c.fetchRSS(e);
-                //     },1000);
-                //     v.renderFlux(e);
-                // });
                 m.sourcesList.forEach(e => {
                     c.fetchRSS(e);
                 });
@@ -179,12 +244,16 @@
                             m.data.channel.item.forEach(e => {
                                 source.articles.push({'article': e, 'id': source.id});
                             });
+                            //Ces v.render sont places la pour se jouer apres chaque fetchRSS. En effet, si on les place en dehors de fetchRSS, l'asynchronicite de la fonction
+                            //et sa vitesse faible feront que ces v.render n'auront pas les donnees necessaires pour generer correctement la vue.
                             v.renderFlux(source);
                             v.renderFav(source);
+                            m.addCategory(source);
+                            v.renderCategory(m.categoryList);
                         }
                     }
                 };
-                xhr.open('get', "https://quentin-huet.fr/pt3/script/getRss.php?flux=" + source.sourceUrl);
+                xhr.open('get', "https://quentin-huet.fr/pt4/script/getRss.php?flux=" + source.sourceUrl);
                 xhr.send();
             },
 
@@ -196,7 +265,7 @@
             //             if (pos+1<urls.length)
             //                 fetchRSS_REC(urls, pos+1);
             //             else{
-            //                 // tous les flux sont chargés (affichage et tout)
+            //                 // tous les flux sont charges (affichage et tout)
             //             }
             //         }
             //     };
@@ -204,7 +273,7 @@
             //     xhr.send();
             // },
 
-            updateArticles: function(){
+            updateArticles: function() {
                 m.filterFlux();
                 v.renderArticles(m.currentArticles);
             },
@@ -221,7 +290,7 @@
                 }
             },
 
-            resetFlux: function(){
+            resetFlux: function() {
                 m.currentArticles = [];
                 v.renderArticles();
                 m.sourcesList.forEach(e => {
@@ -230,7 +299,7 @@
                         v.fluxBrightness(e.id, '.5', 'id');
                     }
                 });
-            },
+            }, 
 
             handlerAddFlux: function() {
                 str = v.addFluxInputText.value;
@@ -244,6 +313,7 @@
                     if (alreadyAdded == false) {
                         m.addFluxUrl(str);
                         m.createFluxObj(str);
+                        c.fetchRSS(m.sourcesList[m.sourcesList.length-1]);
                         v.addFluxInputText.value = "";
                         v.hideOverlay();
                         // Il faut afficher le flux aussi !
@@ -264,15 +334,63 @@
 
             handlerFilterFav: function() {
                 c.resetFlux();
-                //favFlux = m.filterFav();
                 m.filterFav();
                 v.renderArticles(m.currentArticles);
-                //IL FAUT RECUPERER LA TARGET
-                //v.fluxBrightness(v.fluxButton, 1);
+            },
+
+            handlerFilterDate: function(){
+                c.resetFlux();
+                m.filterDate();
+                v.renderArticles(m.currentArticles);
+            },
+
+            handlerFilterKeyword: function(event){
+                keywords = v.filterKeywordsInputText.value;
+                if ((event.key == 'Enter' || event.type == 'click') && (keywords != '')) {
+                    c.resetFlux();
+                    m.filterKeyword(keywords);
+                    v.renderArticles(m.currentArticles);
+                }
+            },
+
+            handlerFilterCategory: function(category, event) {
+                c.resetFlux();
+                m.filterCategory(category);
+                v.hideCategories();
+                v.renderArticles(m.currentArticles);
+            },
+
+            handlerAddFluxPlus: function() {
+                v.showOverlay();
+            },
+
+            handlerAddFluxOverlay: function() {
+                v.hideOverlay();
+            },
+
+            handlerCategory: function() {
+                if (m.categorySwitch == false){
+                    v.showCategories();
+                    m.categorySwitch = true;
+                }
+                else if (m.categorySwitch == true) {
+                    v.hideCategories();
+                    m.categorySwitch = false;
+                }
+            },
+
+            handlerHideCategories: function(ev) {
+                // !v.categoryBox.contains(ev.target)
+                if (v.categoryBox != ev.target && v.categoryArrow != ev.target && v.categoryText != ev.target && m.categorySwitch == true) {
+                    console.log('inside handler hide')
+                    v.hideCategories();
+                    m.categorySwitch = false;
+                }
             }
         }
 
         let v = {
+            fluxSection: document.querySelector('.itemSection'),
             fluxList: document.querySelector('.nav_rssSection_list'),
             itemList: document.querySelector('.itemSection_list'),
             addFluxPlus: document.querySelector('.nav_rssSection_list_li_plus'),
@@ -281,31 +399,46 @@
             addFluxInputText: document.querySelector('.addFluxOverlay_box_inputText'),
             addButton: document.querySelector('.addFluxOverlay_box_addButton'),
             filterFavButton: document.querySelector('.main_top_fav'),
-            categoryBox: document.querySelector('main_top_categoryBox'),
-            // note Quentin : faire bouger la petite flèche aussi
-
+            filterDateButton: document.querySelector('.main_top_sort'),
+            filterKeywordsButton: document.querySelector('.main_top_searchbarBox_button'),
+            filterKeywordsInputText: document.querySelector('.main_top_searchbarBox_search'),
+            categoryBox: document.querySelector('.main_top_categoryBox'),
+            categoryArrow: document.querySelector('.main_top_categoryBox_arrow'),
+            categoryText: document.querySelector('.main_top_categoryBox_text'),
+            categoryList: document.querySelector('.main_top_categoryBox_list'),
+            logoNav: document.querySelector('.nav_igLogo'),
 
             init: function() {
-                v.renderNav();
+                v.setListeners();
                 v.renderArticles();
             },
 
-            renderNav: function() {
-                v.addFluxPlus.addEventListener('click', v.showOverlay);
-                v.addFluxOverlay.addEventListener('click', v.hideOverlay);
+            setListeners: function() {
+                v.addFluxPlus.addEventListener('click', c.handlerAddFluxPlus);
+                v.addFluxOverlay.addEventListener('click', c.handlerAddFluxOverlay);
+
                 v.addButton.addEventListener('click', c.handlerAddFlux);
-                // v.addFluxInputText.addEventListener('submit', c.handlerAddFlux);
-                v.addFluxInputText.addEventListener('keypress', function (e) {
-                    if (e.key === 'Enter') {
+                //à modifier
+                v.addFluxInputText.addEventListener('keypress', function (ev) {
+                    if (ev.key === 'Enter') {
                         c.handlerAddFlux();
                     }
                 });
+                
                 v.filterFavButton.addEventListener('click', c.handlerFilterFav);
-                // v.categoryBox.addEventListener('click');
+                v.filterDateButton.addEventListener('click', c.handlerFilterDate);
+
+                v.filterKeywordsButton.addEventListener('click', c.handlerFilterKeyword);
+                v.filterKeywordsInputText.addEventListener('keypress', function(ev){c.handlerFilterKeyword(event)});
+
+                v.categoryBox.addEventListener('click', c.handlerCategory);
+                document.addEventListener('click', function(ev){c.handlerHideCategories(event)});
+
+                v.logoNav.addEventListener('click', c.resetFlux);
             },
 
             renderFlux: function(source) {
-                if(source){
+                if(source) {
                     // Rendu du titre dans la liste des flux
                     itemFlux = document.createElement('li');
                     itemFlux.classList.add('nav_rssSection_list_li');
@@ -319,6 +452,8 @@
                         icon.src = 'data/img/fluxJa.png';
                     else if (source.sourceUrl.includes('lemonde'))
                         icon.src = 'data/img/fluxLm.png';
+                    else if (source.sourceUrl.includes('jeuxonline'))
+                        icon.src = 'data/img/fluxJol.png';
                     else if (source.sourceUrl)
                         icon.src = 'data/img/fluxDefault.png';
 
@@ -339,18 +474,16 @@
                 }
             },
 
-            renderArticles(articles) {
+            renderArticles: function(articles) {
                 v.itemList.innerHTML = '';
                 if ((!articles) || (articles.length == 0)){
-                    nothingScreen = document.createElement('p');
-                    nothingScreen.textContent = 'CLIQUEZ SUR UN FLUX OU FAITES UNE RECHERCHE POUR FAIRE APPARAITRE DES ARTICLES !'
-                    v.itemList.appendChild(nothingScreen);
+                    v.renderNothingScreen();
                 }
                 else {
+                    v.fluxSection.style.marginTop = '';
                     articles.forEach(e => {
                         itemArticle = document.createElement('li');
                         itemArticle.classList.add('itemSection_list_li');
-                        
                         title = document.createElement('h3');
                         title.classList.add('itemSection_list_li_title');
                         desc = document.createElement('p');
@@ -366,6 +499,7 @@
                         link.textContent = e.article.title;
                         link.href = e.article.link;
                         linkImg.href = e.article.link;
+                        linkImg.target = "_blank";
                         link.target = "_blank";
                         date.textContent = e.article.pubDate;
 
@@ -377,7 +511,7 @@
                             image.src = e.article.mediacontent["@attributes"].url;
                         }
                         else {
-                            image.src = 'data/img/placeholder.png'
+                            image.src = 'data/img/placeholder.png';
                         }
 
                         itemArticle.id = e.id;
@@ -396,10 +530,43 @@
 
             },
 
-            renderFav(source) {
+            renderFav: function(source) {
                 if (source.fav) {
                     document.querySelector('#'+source.id).querySelector('.nav_rssSection_list_li_fav').src = 'data/svg/favFull.svg';
                 }
+            },
+
+            renderCategory: function(categories) {
+                categories.forEach(category => {
+                    itemCategory = document.createElement('li');
+                    textCategory = document.createElement('span');
+                    
+                    textCategory.textContent = category;
+                    itemCategory.classList.add('main_top_categoryBox_list_li');
+                    textCategory.classList.add('main_top_categoryBox_list_li_text');
+
+                    itemCategory.addEventListener('click', function(ev){
+                        c.handlerFilterCategory(category, event);
+                    });
+                    
+                    itemCategory.appendChild(textCategory);
+                    v.categoryList.appendChild(itemCategory);
+                });
+            },
+
+            renderNothingScreen: function() {
+                v.fluxSection.style.marginTop = '34vh';
+
+                nothingInfo = document.createElement('p');
+                nothingInfo.classList.add('itemSection_info');
+                nothingInfo.textContent = 'Cliquez sur un flux ou faites une recherche pour faire apparaître des articles ! Mettez des flux en favoris en cliquant sur les étoiles !'
+                
+                nothingLogo = document.createElement('img');
+                nothingLogo.classList.add('itemSection_logoBig');
+                nothingLogo.src = 'data/svg/igLogoBig.svg';
+                
+                v.itemList.appendChild(nothingLogo);
+                v.itemList.appendChild(nothingInfo);
             },
 
             showOverlay: function() {
@@ -413,23 +580,28 @@
                 v.addFluxBox.style.width = '0';
                 v.addFluxBox.style.display = 'none';
             },
+            
+            showCategories: function() {
+                v.categoryList.style.display = 'flex';
+                v.categoryList.style.flexDirection = 'column';
+                // v.categoryList.style.rowGap = '1rem';
+                v.categoryArrow.style.transform = 'rotate(180deg)';
+                console.log('show')
+            },
+
+            hideCategories: function() {
+                v.categoryList.style.display = 'none';
+                v.categoryArrow.style.transform = 'rotate(90deg)';
+                console.log('hide');
+            },
 
             fluxBrightness(target, value, type) {
                 if (type == 'target') {
                     target.style = 'filter: brightness('+value+')';
-                }else if (type == 'id'){
+                } else if (type == 'id') {
                     document.querySelector('#'+target+' .nav_rssSection_list_li_fluxLogo').style = 'filter: brightness('+value+')';
                 }
             }
-
-            // resetFluxBrightness() {
-            //     fluxButton = document.getElementsByClassName('nav_rssSection_list_li_fluxLogo');
-            //     fluxButtonLenght = fluxButton.lenght;
-            //     console.log(fluxButtonLenght);
-            //     fluxButton.forEach(e => {
-            //         e.style = 'filter: brightness(.5)';
-            //     });
-            // }
         }
         
         // v.showOverlay();
