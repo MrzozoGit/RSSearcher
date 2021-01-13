@@ -2,10 +2,13 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewporst" content="width=device-width, initial-scale=1.0">
-    <title>(4.144) In-Game RSS</title>
+    <!-- <meta name="viewport" content="width=device-width, initial-scale=1.0" /> -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+    <title>In-Game RSS</title>
     <link href="style/reset.css" rel="stylesheet">
     <link href="style/monStyle.css" rel="stylesheet">
+    <link rel="icon" href="data/img/igLogoTiny.png" type="image/gif" sizes="16x16">
+    <meta name="description" content="In-Game vous propose désormais les actualités vidéoludiques les plus fraîches, en temps réel ! Découvrez In-Game RSS : parcourez notre sélection de flux, ajoutez les vôtres, et choisissez vos favoris !">
 </head>
 <body>
     <div class="addFluxOverlay"></div>
@@ -32,19 +35,6 @@
                 <img class="main_top_categoryBox_arrow" src="data/svg/arrow.svg">
                 <span class="main_top_categoryBox_text">Catégories</span>
                 <ul class="main_top_categoryBox_list">
-                    <!-- Catégories factices pour tester -->
-                    <!-- <li class="main_top_categoryBox_list_li">
-                        <span class="main_top_categoryBox_list_li_text">Jeux vidéo</span>
-                    </li>
-                    <li class="main_top_categoryBox_list_li">
-                        <span class="main_top_categoryBox_list_li_text">Pixels</span>
-                    </li>
-                    <li class="main_top_categoryBox_list_li">
-                        <span class="main_top_categoryBox_list_li_text">Cultures web</span>
-                    </li>
-                    <li class="main_top_categoryBox_list_li">
-                        <span class="main_top_categoryBox_list_li_text">Toute l'actualité</span>
-                    </li> -->
                 </ul>
             </div>
             <div class="main_top_searchbarBox">
@@ -54,16 +44,7 @@
         </nav>
 
         <section class="itemSection">
-            <!-- <h2 class="itemSection_title">Liste des articles</h2> -->
-            <ul class="itemSection_list">
-                <!-- ELEMENTS TEMPORAIRES POUR FAIRE LE CSS -->
-                <!-- <li class="itemSection_list_li">
-                    <a href="" class="itemSection_list_li_linkImg"><img src="https://i.ytimg.com/vi/34YnyCKZPOQ/maxresdefault.jpg" alt="" class="itemSection_list_li_img"></a>
-                    <h3 class="itemSection_list_li_title"><a href="" class="itemSection_list_li_link">Jeu vidéo : « Minecraft Earth » fermera ses portes en juin</a></h3>
-                    <span class="itemSection_list_li_date">Wed, 06 Jan 2021 12:51:37 +0100</span>
-                    <p class="itemSection_list_li_desc">Lancé il y a à peine un an, le jeu pour smartphone en réalité augmentée, qui transposait l’univers et les briques de « Minecraft » dans un titre inspiré du phénomène « Pokémon Go », a pâti du confinement mondial d’une bonne partie de la population en 2020.</p>
-                </li> -->
-            </ul>
+            <ul class="itemSection_list"></ul>
         </section>
     </section>
     
@@ -74,6 +55,7 @@
             idCounter: 0,
             categorySwitch: false,
             dateSwitch: true,
+            dateAngle: 0,
             sourcesUrlList: ['https://www.jeuxactu.com/rss/ja.rss', 'https://www.lemonde.fr/jeux-video/rss_full.xml', 'https://www.jeuxonline.info/rss/actualites/rss.xml'],
             sourcesList: [],
             currentArticles: [],
@@ -109,7 +91,6 @@
                 tempObj = tempObj = {'id': 'id' + m.idCounter, 'name': null, 'sourceUrl': url, 'switch': false, 'fav': false, articles: []};
                 m.sourcesList.push(tempObj);
                 m.idCounter++;
-                //return tempObj;
             },
 
             updateLocalFlux: function() {
@@ -143,84 +124,58 @@
                 localStorage.setItem("favs", JSON.stringify(favTab));
             },
 
-            filterFlux: function() {
-                //à factoriser
-                m.currentArticles = [];
-                sourcesSwitch = m.sourcesList.filter(e => e.switch == true);
-                sourcesSwitch.forEach(e => {
+            filterFunction: function(sources, reset) {
+                if (reset)
+                    m.currentArticles = [];
+                sources.forEach(e => {
                     e.articles.forEach(f => {
                         m.currentArticles.push(f);
                     });
                 });
-                //à factoriser
+            },
+
+            filterFlux: function() {
+                sourcesSwitch = m.sourcesList.filter(e => e.switch == true);
+                m.filterFunction(sourcesSwitch, true);
+                m.currentArticles.sort(m.compareDate);
+                m.currentArticles.reverse();
             },
 
             filterFav: function() {
-                //à factoriser
-                m.currentArticles = [];
                 sourcesFav = m.sourcesList.filter(e => e.fav == true);
-                sourcesFav.forEach(e => {
-                    e.articles.forEach(f => {
-                        m.currentArticles.push(f);
-                    });
-                });
-                //à factoriser
-
+                m.filterFunction(sourcesFav, true);
                 return sourcesFav;
             },
 
             filterCategory: function(category) {
-                //à factoriser
-                m.currentArticles = [];
-                m.sourcesList.forEach(e => {
-                    e.articles.forEach(f => {
-                        m.currentArticles.push(f);
-                    })
-                });
-                //à factoriser
-
+                m.filterFunction(m.sourcesList, true);
                 m.currentArticles = m.currentArticles.filter(e => e.article.category == category);
             },
 
-            filterDate: function(){
-                //à factoriser
-                m.currentArticles = [];
-                m.sourcesList.forEach(e => {
-                    e.articles.forEach(f => {
-                        m.currentArticles.push(f);
-                    });
-                });
-                //à factoriser
-                
-                comparer_date = function(item1, item2) {
-                    d1 = new Date(item1.article.pubDate);
-                    d2 = new Date(item2.article.pubDate);
-                    return d1.getTime() - d2.getTime();
-                }
-                m.currentArticles.sort(comparer_date);
-
-                if (m.dateSwitch == false){
-                    m.dateSwitch = true;
-                }
-                else if (m.dateSwitch == true){
-                    m.currentArticles = m.currentArticles.reverse();
+            filterDate: function() {
+                m.filterFunction(m.sourcesList, true);
+                m.currentArticles.sort(m.compareDate);
+                m.dateAngle+=180;
+                if (m.dateSwitch == true) {
+                    m.currentArticles.reverse();
                     m.dateSwitch = false;
+                }
+                else if (m.dateSwitch == false) {
+                    m.dateSwitch = true;
                 }
             },
 
-            filterKeyword: function(keywords) {
-                //à factoriser
-                m.currentArticles = [];
-                m.sourcesList.forEach(e => {
-                    e.articles.forEach(f => {
-                        m.currentArticles.push(f);
-                    });
-                });
-                //à factoriser
+            compareDate: function(item1, item2) {
+                d1 = new Date(item1.article.pubDate);
+                d2 = new Date(item2.article.pubDate);
+                return d1.getTime() - d2.getTime();
+            },
 
+            filterKeyword: function(keywords) {
+                //m.filterFunction(m.currentArticles, false);
                 keywords = keywords.toUpperCase();
-                m.currentArticles = m.currentArticles.filter(e => (e.article.description.toUpperCase().includes(keywords)) || (e.article.title.toUpperCase().includes(keywords)));
-                console.log(m.currentArticles);
+                keywordsFilteredTab = m.currentArticles.filter(e => (e.article.description.toUpperCase().includes(keywords)) || (e.article.title.toUpperCase().includes(keywords)));
+                return keywordsFilteredTab;
             }
         }
 
@@ -253,7 +208,7 @@
                         }
                     }
                 };
-                xhr.open('get', "https://quentin-huet.fr/pt4/script/getRss.php?flux=" + source.sourceUrl);
+                xhr.open('get', "https://quentin-huet.fr/In-Game-RSS/script/getRss.php?flux=" + source.sourceUrl);
                 xhr.send();
             },
 
@@ -301,23 +256,23 @@
                 });
             }, 
 
-            handlerAddFlux: function() {
-                str = v.addFluxInputText.value;
-                alreadyAdded = false;
-                if ((str.includes("https://") || str.includes("http://")) & (str.includes(".xml") || (str.includes(".rss")))) {
-                    m.sourcesList.forEach(e => {
-                        if (str == e.sourceUrl) {
-                            alreadyAdded = true;
-                        }      
-                    })
-                    if (alreadyAdded == false) {
-                        m.addFluxUrl(str);
-                        m.createFluxObj(str);
-                        c.fetchRSS(m.sourcesList[m.sourcesList.length-1]);
-                        v.addFluxInputText.value = "";
-                        v.hideOverlay();
-                        // Il faut afficher le flux aussi !
-                        // Pour l'instant il ne s'affiche qu'après un refresh
+            handlerAddFlux: function(event) {
+                if ((event.key == 'Enter' || event.type == 'click')) {
+                    str = v.addFluxInputText.value;
+                    alreadyAdded = false;
+                    if ((str.includes("https://") || str.includes("http://")) & (str.includes(".xml") || (str.includes(".rss")))) {
+                        m.sourcesList.forEach(e => {
+                            if (str == e.sourceUrl) {
+                                alreadyAdded = true;
+                            }      
+                        })
+                        if (alreadyAdded == false) {
+                            m.addFluxUrl(str);
+                            m.createFluxObj(str);
+                            c.fetchRSS(m.sourcesList[m.sourcesList.length-1]);
+                            v.addFluxInputText.value = "";
+                            v.hideOverlay();
+                        }
                     }
                 }
             },
@@ -341,15 +296,15 @@
             handlerFilterDate: function(){
                 c.resetFlux();
                 m.filterDate();
+                v.animateDateButton(m.dateAngle);
                 v.renderArticles(m.currentArticles);
             },
 
             handlerFilterKeyword: function(event){
                 keywords = v.filterKeywordsInputText.value;
                 if ((event.key == 'Enter' || event.type == 'click') && (keywords != '')) {
-                    c.resetFlux();
-                    m.filterKeyword(keywords);
-                    v.renderArticles(m.currentArticles);
+                    //c.resetFlux();
+                    v.renderArticles(m.filterKeyword(keywords));
                 }
             },
 
@@ -382,7 +337,6 @@
             handlerHideCategories: function(ev) {
                 // !v.categoryBox.contains(ev.target)
                 if (v.categoryBox != ev.target && v.categoryArrow != ev.target && v.categoryText != ev.target && m.categorySwitch == true) {
-                    console.log('inside handler hide')
                     v.hideCategories();
                     m.categorySwitch = false;
                 }
@@ -418,12 +372,7 @@
                 v.addFluxOverlay.addEventListener('click', c.handlerAddFluxOverlay);
 
                 v.addButton.addEventListener('click', c.handlerAddFlux);
-                //à modifier
-                v.addFluxInputText.addEventListener('keypress', function (ev) {
-                    if (ev.key === 'Enter') {
-                        c.handlerAddFlux();
-                    }
-                });
+                v.addFluxInputText.addEventListener('keypress', function(ev){c.handlerAddFlux(event)});
                 
                 v.filterFavButton.addEventListener('click', c.handlerFilterFav);
                 v.filterDateButton.addEventListener('click', c.handlerFilterDate);
@@ -486,43 +435,50 @@
                         itemArticle.classList.add('itemSection_list_li');
                         title = document.createElement('h3');
                         title.classList.add('itemSection_list_li_title');
-                        desc = document.createElement('p');
-                        desc.classList.add('itemSection_list_li_desc');
                         link = document.createElement('a');
                         link.classList.add('itemSection_list_li_link');
-                        linkImg = document.createElement('a');
-                        link.classList.add('itemSection_list_li_linkImg');
+                        desc = document.createElement('p');
+                        desc.classList.add('itemSection_list_li_desc');
+                        // linkImg = document.createElement('a');
+                        // linkImg.classList.add('itemSection_list_li_linkImg');
                         date = document.createElement('span');
                         date.classList.add('itemSection_list_li_date');
-
-                        desc.textContent = e.article.description;
-                        link.textContent = e.article.title;
-                        link.href = e.article.link;
-                        linkImg.href = e.article.link;
-                        linkImg.target = "_blank";
-                        link.target = "_blank";
-                        date.textContent = e.article.pubDate;
-
+                        
                         image = document.createElement('img');
                         image.classList.add('itemSection_list_li_img');
-                        if(e.article.enclosure) {
+                        if (e.article.enclosure) {
                             image.src = e.article.enclosure["@attributes"].url;
                         } else if (e.article.mediacontent) {
                             image.src = e.article.mediacontent["@attributes"].url;
-                        }
-                        else {
+                        } else {
                             image.src = 'data/img/placeholder.png';
                         }
 
+                        desc.textContent = e.article.description;
+                        title.textContent = e.article.title;
+                        link.href = e.article.link;
+                        // linkImg.href = e.article.link;
+                        // linkImg.target = "_blank";
+                        link.target = "_blank";
+                        viewDate = new Date(e.article.pubDate).toLocaleDateString('fr-FR', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric' });
+                        date.textContent = viewDate;
+
                         itemArticle.id = e.id;
 
-                        title.appendChild(link);
-                        linkImg.appendChild(image);
+                        link.appendChild(image);
+                        link.appendChild(title);
 
-                        itemArticle.appendChild(linkImg);
-                        itemArticle.appendChild(title);
+                        itemArticle.appendChild(link);
                         itemArticle.appendChild(date);
                         itemArticle.appendChild(desc);
+
+                        // title.appendChild(link);
+                        // linkImg.appendChild(image);
+
+                        // itemArticle.appendChild(linkImg);
+                        // itemArticle.appendChild(title);
+                        // itemArticle.appendChild(date);
+                        // itemArticle.appendChild(desc);
 
                         v.itemList.appendChild(itemArticle);
                     });
@@ -586,13 +542,11 @@
                 v.categoryList.style.flexDirection = 'column';
                 // v.categoryList.style.rowGap = '1rem';
                 v.categoryArrow.style.transform = 'rotate(180deg)';
-                console.log('show')
             },
 
             hideCategories: function() {
                 v.categoryList.style.display = 'none';
                 v.categoryArrow.style.transform = 'rotate(90deg)';
-                console.log('hide');
             },
 
             fluxBrightness(target, value, type) {
@@ -601,6 +555,10 @@
                 } else if (type == 'id') {
                     document.querySelector('#'+target+' .nav_rssSection_list_li_fluxLogo').style = 'filter: brightness('+value+')';
                 }
+            },
+
+            animateDateButton(value) {
+                v.filterDateButton.style.transform = 'rotate('+value+'deg)';
             }
         }
         

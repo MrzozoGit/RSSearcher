@@ -14,6 +14,7 @@ html {
     font-size: 62.5%;
     -webkit-user-select: none;
     -webkit-user-drag: none;
+    overflow-y: overlay;
 }
 
 body {
@@ -49,7 +50,8 @@ body {
     display: none;
     column-gap: 1.5rem;
     width: fit-content;
-} 
+    transition: .3s ease;
+}
 
 .addFluxOverlay_box_inputText {
     border: 0;
@@ -64,10 +66,6 @@ body {
     outline-width: 0;
 }
 
-.addFluxOverlay_box_addButton:hover {
-    cursor: pointer;
-    -webkit-user-drag: none;
-}
 
 /* //////////////// */
 /*      Header      */
@@ -127,13 +125,10 @@ body {
     /* animation: .3s slidein; */
 }
 
-.nav_rssSection_list_li_fluxLogo:hover {
-    animation: 1s ease-in infinite alternate hovering;
-}
-
 .nav_rssSection_list_li_fav {
     cursor: pointer;
     animation: .3s slidein;
+    -webkit-user-drag: none;
 }
 
 
@@ -166,19 +161,21 @@ body {
     -webkit-user-drag: none;
 }
 
+.main_top_sort {
+    transition: .3s;
+    transition-timing-function: ease;
+}
+
 .main_top_categoryBox {
     background-color: var(--gray-light);
     padding: 1rem;
-    /* padding-right: 2.5rem; */
     column-gap: 1.5rem;
     flex: auto;
     display: flex;
     align-items: center;
     position: relative;
-    /* justify-content: center; */
-    /* height: 4.8rem; */
     cursor: pointer;
-    max-width: 46rem;
+    max-width: 35.2rem;
 }
 
 .main_top_categoryBox_arrow {
@@ -193,7 +190,6 @@ body {
     font-size: 2.4em;
     text-transform: uppercase;
     font-weight: bold;
-    /* justify-self: center; */
 }
 
 .main_top_categoryBox_list {
@@ -217,17 +213,13 @@ body {
     padding: 1rem;
 }
 
-.main_top_categoryBox_list_li:hover {
-    background-color: var(--gray);
-}
-
 .main_top_searchbarBox {
     background-color: var(--gray-light);
     padding: 1rem;
     column-gap: 1.5rem;
     width: 100%;
     display: flex;
-    max-width: 48rem;
+    max-width: 50rem;
 }
 
 .main_top_searchbarBox_search {
@@ -261,7 +253,6 @@ body {
     min-width: 20rem;
     width: 50%;
     max-width: 66rem;
-    /* text-align: center; */
     margin-left: auto;
     margin-right: auto;
     -webkit-user-drag: none;
@@ -273,30 +264,15 @@ body {
     flex-wrap: wrap;
     row-gap: 3rem;
     column-gap: 3rem;
-    
 }
 
 .itemSection_list_li * {
     width: 100%;
-
-    /* tests */
-    /* border: 2px #0F0 solid; */
 }
 
 .itemSection_list_li_img {
     max-width: 100%;
-}
-
-/*      /!\      */
-/* NE MARCHE PAS */
-/*      /!\      */
-.itemSection_list_li_img:hover .itemSection_list_li_title {
-    /* opacity: 80%; */
-    color: var(--red);
-}
-
-.itemSection_list_li_link:hover {
-    color: var(--red);
+    -webkit-user-drag: none;
 }
 
 .itemSection_list_li_title {
@@ -304,7 +280,6 @@ body {
     font-weight: 700;
     text-transform: uppercase;
     margin-bottom: .5rem;
-    color: blue;
 }
 
 .itemSection_list_li_date {
@@ -330,6 +305,11 @@ body {
         width: 12rem;
     }
 
+    .nav_igLogo {
+        width: 7rem;
+        height: 7rem;
+    }
+
     .nav_rssSection_list_li {
         flex-direction: row;
         column-gap: 1rem;
@@ -353,6 +333,30 @@ body {
         height: 25rem;
         object-fit: cover;
     }
+
+    /* HOVERS */
+    .addFluxOverlay_box_addButton:hover {
+        cursor: pointer;
+        -webkit-user-drag: none;
+    }
+
+    .nav_rssSection_list_li_fluxLogo:hover {
+        animation: 1s ease-in infinite alternate hovering;
+    }
+
+    .main_top_categoryBox_list_li:hover {
+        background-color: var(--gray);
+    }
+
+    .itemSection_list_li_link:hover {
+        color: var(--red);
+    }
+
+    /*      /!\      */
+    /* NE MARCHE PAS */
+    /* .itemSection_list_li_linkImg:hover + .itemSection_list_li_link {
+        color: var(--red);
+    } */
 }
 
 /* écran > 1000px */
@@ -373,4 +377,14 @@ body {
 @keyframes hovering {
     0% { transform: scale(1);}
     100% { transform: scale(1.1);}
+}
+
+/* STYLE SCROLLBAR */
+
+::-webkit-scrollbar {
+    background-color: var(--white);
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: var(--gray);
 }
